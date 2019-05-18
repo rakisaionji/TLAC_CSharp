@@ -37,7 +37,7 @@ namespace DivaHook.Injection
 
         private float resolutionFactorX = 1f;
         private float resolutionFactorY = 1f;
-        
+
         private bool checkSetCursor = true;
         private bool checkResolution = true;
 
@@ -87,6 +87,7 @@ namespace DivaHook.Injection
             }
 
             InputEmulator.KeyConfig.TryLoadConfig();
+            InputEmulator.PlayerConfig.TryLoadConfig();
             server.ReportString($"DivaHook successfully established\n");
             server.ReportString($"Do not close this application...");
 

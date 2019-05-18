@@ -7,7 +7,7 @@ namespace DivaHook.Emulator.Components
 {
     public class TouchPanelEmulator : IEmulatorComponent
     {
-        private const int TOUCH_PANEL_NG = 4;
+        // private const int TOUCH_PANEL_NG = 4;
 
         private const long TOUCH_PANEL_TASK_OBJECT_ADDRESS = 0x000000014CC9EC30L;
 
@@ -41,7 +41,7 @@ namespace DivaHook.Emulator.Components
         public void UpdateEmulatorTick(TimeSpan deltaTime)
         {
             // to not enable during SYSTEM STARTUP
-            if (checkTouchPanelState && MemoryManipulator.ReadInt32(GetConnectionStateAddress()) == TOUCH_PANEL_NG)
+            if (checkTouchPanelState && MemoryManipulator.ReadInt32(GetConnectionStateAddress()) != 1 /*== TOUCH_PANEL_NG*/)
             {
                 MemoryManipulator.WriteInt32(GetConnectionStateAddress(), 1);
                 checkTouchPanelState = false;
@@ -52,7 +52,7 @@ namespace DivaHook.Emulator.Components
                 MemoryManipulator.WriteInt32(GetAdvTouchIsTappedAddress(), 1);
             }
 
-            bool tapped = InputHelper.IsTapped(Keys.MouseLeft);
+            bool tapped = InputHelper.IsDown(Keys.MouseLeft);
             bool released = InputHelper.IsReleased(Keys.MouseLeft);
 
             int contactType = tapped ? 2 : released ? 1 : 0;

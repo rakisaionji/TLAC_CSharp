@@ -14,6 +14,8 @@ namespace DivaHook.Emulator
     {
         public static readonly KeyConfig KeyConfig = new KeyConfig();
 
+        public static readonly PlayerConfig PlayerConfig = new PlayerConfig();
+
         public static readonly TimeSpan InputUpdateInterval = TimeSpan.FromMilliseconds(1000.0 / 144.0);
 
         public static readonly TimeSpan ProcessActiveCheckInterval = TimeSpan.FromMilliseconds(350.0);
@@ -62,6 +64,9 @@ namespace DivaHook.Emulator
                 new TouchSliderEmulator(MemoryManipulator, KeyConfig),
                 new TouchPanelEmulator(MemoryManipulator, KeyConfig),
                 new StageManager(MemoryManipulator, KeyConfig),
+                new PlayerDataManager(MemoryManipulator, PlayerConfig),
+                new DebugComponent(MemoryManipulator, KeyConfig),
+                new FastLoader(MemoryManipulator, KeyConfig),
             };
 
             CameraController = new CameraController(MemoryManipulator, KeyConfig);
@@ -170,7 +175,7 @@ namespace DivaHook.Emulator
         private void InitializeDivaMemory()
         {
             // FREE PLAY
-            //MemoryManipulator.WriteByte(0x14066E878, 1); 
+            // MemoryManipulator.WriteByte(0x14066E878, 1); 
 
             // skip DHCP timer
             if (MemoryManipulator.ReadInt32(NETWORK_COUNTER_CHECK_ADDRESS) == 1)

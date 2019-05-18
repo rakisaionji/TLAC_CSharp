@@ -17,7 +17,7 @@ namespace DivaHook.Emulator.Config
 
         public ControlBinding TestButtonBinding = new ControlBinding(Keys.F1);
         public ControlBinding ServiceButtonBinding = new ControlBinding(Keys.F2);
-        public ControlBinding StartButtonBinding = new ControlBinding(Keys.Enter, Ds4Button.Options );
+        public ControlBinding StartButtonBinding = new ControlBinding(Keys.Enter, Ds4Button.Options);
 
         public ControlBinding TriangleButtonBinding = new ControlBinding(Keys.W, Keys.I, Ds4Button.Sankaku, Ds4Button.DpadUp, Ds4Button.L2, Ds4Button.R2);
         public ControlBinding SquareButtonBinding = new ControlBinding(Keys.A, Keys.J, Ds4Button.Shikaku, Ds4Button.DpadLeft, Ds4Button.L2, Ds4Button.R2);
@@ -30,7 +30,11 @@ namespace DivaHook.Emulator.Config
         public ControlBinding RightSideSlideLeftBinding = new ControlBinding(Keys.U, Ds4Button.RightStickLeft);
         public ControlBinding RightSideSlideRightBinding = new ControlBinding(Keys.O, Ds4Button.RightStickRight);
 
-        public ControlBinding ToggleCameraControl = new ControlBinding(Keys.F5);
+        public ControlBinding ToggleGsAdvertise = new ControlBinding(Keys.F4);
+        public ControlBinding ToggleGsGameplay = new ControlBinding(Keys.F5);
+        public ControlBinding ToggleGsDataTest = new ControlBinding(Keys.F6);
+        public ControlBinding ToggleGsAppError = new ControlBinding(Keys.F7);
+        public ControlBinding ToggleCameraControl = new ControlBinding(Keys.F8);
 
         public ControlBinding FastCameraSpeedBinding = new ControlBinding(Keys.LeftShift);
 
@@ -132,11 +136,21 @@ namespace DivaHook.Emulator.Config
                 {
                     "RIGHT_SIDE_SLIDE_RIGHT", new ControlBindingAccessor(() => RightSideSlideRightBinding, (v) => RightSideSlideRightBinding = v)
                 },
-
+                {
+                    "GAME_MODE_ADVERTISE", new ControlBindingAccessor(() => ToggleGsAdvertise, (v) => ToggleGsAdvertise = v)
+                },
+                {
+                    "GAME_MODE_GAMEPLAY", new ControlBindingAccessor(() => ToggleGsGameplay, (v) => ToggleGsGameplay = v)
+                },
+                {
+                    "GAME_MODE_DATA_TEST", new ControlBindingAccessor(() => ToggleGsDataTest, (v) => ToggleGsDataTest = v)
+                },
+                {
+                    "GAME_MODE_APP_ERROR", new ControlBindingAccessor(() => ToggleGsAppError, (v) => ToggleGsAppError = v)
+                },
                 {
                     "TOGGLE_CAMERA_CONTROL", new ControlBindingAccessor(() => ToggleCameraControl, (v) => ToggleCameraControl = v)
                 },
-
                 {
                     "FAST_CAMERA_SPEED", new ControlBindingAccessor(() => FastCameraSpeedBinding, (v) => FastCameraSpeedBinding = v)
                 },

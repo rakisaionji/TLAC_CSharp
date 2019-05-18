@@ -24,6 +24,7 @@
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x64</PlatformTarget>
     <LangVersion>7.2</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -37,6 +38,9 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DS4WindowsApi">
+      <HintPath>..\TotallyLegitArcadeController\DS4WindowsApi.dll</HintPath>
+    </Reference>
     <Reference Include="EasyHook">
       <HintPath>..\packages\EasyHook.2.7.6789\lib\net40\EasyHook.dll</HintPath>
     </Reference>
@@ -51,6 +55,10 @@
   <ItemGroup>
     <Compile Include="Emulator\Assembly.cs" />
     <Compile Include="Emulator\Components\CoinEmulator.cs" />
+    <Compile Include="Emulator\Components\DebugComponent.cs" />
+    <Compile Include="Emulator\Components\FastLoader.cs" />
+    <Compile Include="Emulator\Components\GameState.cs" />
+    <Compile Include="Emulator\Components\PlayerDataManager.cs" />
     <Compile Include="Emulator\Components\StageManager.cs" />
     <Compile Include="Emulator\Config\BindingAccessor.cs" />
     <Compile Include="Emulator\Camera\CameraData.cs" />
@@ -58,6 +66,7 @@
     <Compile Include="Emulator\Config\ConfigFile.cs" />
     <Compile Include="Emulator\Config\DivaConfig.cs" />
     <Compile Include="Emulator\Components\IEmulatorComponent.cs" />
+    <Compile Include="Emulator\Config\PlayerConfig.cs" />
     <Compile Include="Emulator\Input\ControlBinding.cs" />
     <Compile Include="Emulator\Input\Ds4\Ds4Button.cs" />
     <Compile Include="Emulator\Input\Ds4\Ds4Device.cs" />
@@ -87,15 +96,21 @@
     <Compile Include="Injection\InjectionEntryPoint.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Injection\ServerInterface.cs" />
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Emulator\MemoryManipulator.Imports.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\DS4WindowsApi-DS4WindowsApi\DS4WindowsApi\DS4WindowsApi.csproj">
-      <Project>{053ba093-2731-4118-80c5-a0cbcdec5da4}</Project>
-      <Name>DS4WindowsApi</Name>
-    </ProjectReference>
+    <None Include="app.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
