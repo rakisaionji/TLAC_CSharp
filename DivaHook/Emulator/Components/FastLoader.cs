@@ -1,11 +1,12 @@
 ﻿using DivaHook.Emulator.Config;
 using System;
+using System.Runtime.InteropServices;
 
 namespace DivaHook.Emulator.Components
 {
     public class FastLoader : IEmulatorComponent
     {
-        // private const long UPDATE_TASKS_ADDRESS = ???;
+        private const long UPDATE_TASKS_ADDRESS = 0x000000014019B980L;
         private const long CURRENT_GAME_STATE_ADDRESS = 0x0000000140EDA810L;
         private const long DATA_INIT_STATE_ADDRESS = 0x0000000140EDA7A8L;
         private const long SYSTEM_WARNING_ELAPSED_ADDRESS = 0x00000001411A1430L;
@@ -13,13 +14,14 @@ namespace DivaHook.Emulator.Components
 
         private GameState currentGameState;
         private GameState previousGameState;
+        const int updatesPerFrame = 39;
         bool dataInitialized = false;
 
         public KeyConfig KeyConfig { get; private set; }
         public MemoryManipulator MemoryManipulator { get; private set; }
 
         // [UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
-        // private delegate void UpdateTasksDelegate();
+        private delegate void UpdateTask();
         // private static readonly UpdateTasksDelegate UpdateTasks = GetDelegateForFunctionPointer<UpdateTasksDelegate>(UPDATE_TASKS_ADDRESS);
 
         public FastLoader(MemoryManipulator memoryManipulator, KeyConfig keyConfig)
@@ -41,11 +43,11 @@ namespace DivaHook.Emulator.Components
 
             if (currentGameState == GameState.GS_STARTUP)
             {
-                // MemoryManipulator.WriteSingle(AET_FRAME_DURATION_ADDRESS, 1.0f / (60 / 4.0f));
+                var ptr = new IntPtr(UPDATE_TASKS_ADDRESS);
+                var updateTask = Marshal.GetDelegateForFunctionPointer<UpdateTask>(ptr);
 
                 // Speed up TaskSystemStartup
-                // for (int i = 0; i < 39; i++)
-                //     UpdateTasks();
+                for (int i = 0; i < updatesPerFrame; i++) updateTask();
 
                 // Skip most of TaskDataInit
                 MemoryManipulator.WriteInt32(DATA_INIT_STATE_ADDRESS, 3);
@@ -60,19 +62,9 @@ namespace DivaHook.Emulator.Components
             }
         }
 
-        // private long GetCurrentGameStateAddressAddress()
-        // {
-        //    return CURRENT_GAME_STATE_ADDRESS;
-        // }
-
-        // private long GetDataInitStateAddress()
-        // {
-        //    return DATA_INIT_STATE_ADDRESS;
-        // }
-
         private long GetSystemWarningElapsedAddress()
         {
-            return SYSTEM_WARNING_ELAPSED_ADDRESS + 0x58L;
+            return SYSTEM_WARNING_ELAPSED_ADDRESS + 0x68L;
         }
     }
 }

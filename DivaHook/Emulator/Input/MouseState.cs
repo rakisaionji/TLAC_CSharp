@@ -9,7 +9,7 @@ namespace DivaHook.Emulator.Input
     public struct MouseState
     {
         public Vector2 Position;
-        
+        public Vector2 RelativePosition;
         // MouseButtons, MouseWheel
     }
 }

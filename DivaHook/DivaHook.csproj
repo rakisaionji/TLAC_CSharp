@@ -59,6 +59,7 @@
     <Compile Include="Emulator\Components\FastLoader.cs" />
     <Compile Include="Emulator\Components\GameState.cs" />
     <Compile Include="Emulator\Components\PlayerDataManager.cs" />
+    <Compile Include="Emulator\Components\ScaleComponent.cs" />
     <Compile Include="Emulator\Components\StageManager.cs" />
     <Compile Include="Emulator\Config\BindingAccessor.cs" />
     <Compile Include="Emulator\Camera\CameraData.cs" />

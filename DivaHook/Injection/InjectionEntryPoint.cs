@@ -217,7 +217,7 @@ namespace DivaHook.Injection
             LogGameState(formatString, length, format0, format1);
         }
 
-        private unsafe void PlayAetTouchEffOverride(long touchReactionPtr, long position)
+        private void PlayAetTouchEffOverride(long touchReactionPtr, long position)
         {
             if (checkResolution)
             {
@@ -230,14 +230,14 @@ namespace DivaHook.Injection
                 resolutionFactorY = DEFAULT_RESOLUTION_HEIGHT / height;
             }
 
-            float x = *((float*)&position + 0);
-            float y = *((float*)&position + 1);
+            float x = emulator.MemoryManipulator.ReadSingle(position + 0);
+            float y = emulator.MemoryManipulator.ReadSingle(position + 1);
 
             x *= resolutionFactorX;
             y *= resolutionFactorY;
 
-            *((int*)&position + 0) = *(int*)&x;
-            *((int*)&position + 1) = *(int*)&y;
+            emulator.MemoryManipulator.WriteInt32(position + 0, (int)x);
+            emulator.MemoryManipulator.WriteInt32(position + 1, (int)y);
 
             PlayAetTouchEff(touchReactionPtr, position);
         }

@@ -7,6 +7,9 @@ namespace DivaHook.Emulator
 {
     public partial class MemoryManipulator
     {
+        private const long RESOLUTION_WIDTH_ADDRESS = 0x0000000140EDA8BC;
+        private const long RESOLUTION_HEIGHT_ADDRESS = 0x0000000140EDA8C0;
+
         private const ProcessAccess PROCESS_ACCESS = ProcessAccess.PROCESS_VM_READ | ProcessAccess.PROCESS_VM_WRITE | ProcessAccess.PROCESS_VM_OPERATION;
 
         private static readonly Dictionary<IntPtr, int> ProcessIdCache = new Dictionary<IntPtr, int>(16);
@@ -39,6 +42,44 @@ namespace DivaHook.Emulator
                 Point offset = new Point(window.Width - client.Width, window.Height - client.Height);
 
                 return new Rectangle(window.X + offset.X, window.Y + offset.Y, window.Width, window.Height);
+            }
+        }
+
+        public Vector2 GetMouseRelativePos(Vector2 pos)
+        {
+            if (!IsAttached)
+            {
+                return Vector2.Zero;
+            }
+            else
+            {
+                var v = new Vector2();
+                v.X = pos.X; v.Y = pos.Y;
+
+                float xoffset;
+                float scale;
+                RECT hWindow;
+                GetClientRect(AttachedProcess.MainWindowHandle, out hWindow);
+
+                var gameHeight = ReadInt32(RESOLUTION_HEIGHT_ADDRESS);
+                var gameWidth = ReadInt32(RESOLUTION_WIDTH_ADDRESS);
+
+                xoffset = ((float)16 / (float)9) * (hWindow.Bottom - hWindow.Top);
+
+                if (xoffset != (hWindow.Right - hWindow.Left))
+                {
+                    scale = xoffset / (hWindow.Right - hWindow.Left);
+                    xoffset = ((hWindow.Right - hWindow.Left) / 2) - (xoffset / 2);
+                }
+                else
+                {
+                    xoffset = 0;
+                    scale = 1;
+                }
+                v.X = ((v.X - (float)Math.Round(xoffset)) * gameWidth / (hWindow.Right - hWindow.Left)) / scale;
+                v.Y = v.Y * gameHeight / (hWindow.Bottom - hWindow.Top);
+
+                return v;
             }
         }
 

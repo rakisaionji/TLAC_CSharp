@@ -67,6 +67,7 @@ namespace DivaHook.Emulator
                 new PlayerDataManager(MemoryManipulator, PlayerConfig),
                 new DebugComponent(MemoryManipulator, KeyConfig),
                 new FastLoader(MemoryManipulator, KeyConfig),
+                new ScaleComponent(MemoryManipulator),
             };
 
             CameraController = new CameraController(MemoryManipulator, KeyConfig);
