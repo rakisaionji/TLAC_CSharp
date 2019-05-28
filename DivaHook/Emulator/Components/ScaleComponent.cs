@@ -34,39 +34,20 @@ namespace DivaHook.Emulator.Components
 
         public void InitializeDivaMemory()
         {
+            uint oldProtect, bck;
             {
-                uint oldProtect, bck;
                 VirtualProtect((IntPtr)0x00000001404ACD24, 7, PAGE_EXECUTE_READWRITE, out oldProtect);
-                MemoryManipulator.WriteByte((0x00000001404ACD24 + 0), 0x44);
-                MemoryManipulator.WriteByte((0x00000001404ACD24 + 1), 0x8B);
-                MemoryManipulator.WriteByte((0x00000001404ACD24 + 2), 0x0D);
-                MemoryManipulator.WriteByte((0x00000001404ACD24 + 3), 0xD1);
-                MemoryManipulator.WriteByte((0x00000001404ACD24 + 4), 0x08);
-                MemoryManipulator.WriteByte((0x00000001404ACD24 + 5), 0xD0);
-                MemoryManipulator.WriteByte((0x00000001404ACD24 + 6), 0x00);
+                MemoryManipulator.Write(0x00000001404ACD24, new byte[]{0x44,0x8B,0x0D,0xD1,0x08,0xD0,0x00});
                 VirtualProtect((IntPtr)0x00000001404ACD24, 7, oldProtect, out bck);
             }
             {
-                uint oldProtect, bck;
                 VirtualProtect((IntPtr)0x00000001404ACD2B, 7, PAGE_EXECUTE_READWRITE, out oldProtect);
-                MemoryManipulator.WriteByte((0x00000001404ACD2B + 0), 0x44);
-                MemoryManipulator.WriteByte((0x00000001404ACD2B + 1), 0x8B);
-                MemoryManipulator.WriteByte((0x00000001404ACD2B + 2), 0x05);
-                MemoryManipulator.WriteByte((0x00000001404ACD2B + 3), 0xC6);
-                MemoryManipulator.WriteByte((0x00000001404ACD2B + 4), 0x08);
-                MemoryManipulator.WriteByte((0x00000001404ACD2B + 5), 0xD0);
-                MemoryManipulator.WriteByte((0x00000001404ACD2B + 6), 0x00);
+                MemoryManipulator.Write(0x00000001404ACD2B, new byte[]{0x44,0x8B,0x05,0xC6,0x08,0xD0,0x00});
                 VirtualProtect((IntPtr)0x00000001404ACD2B, 7, oldProtect, out bck);
             }
             {
-                uint oldProtect, bck;
                 VirtualProtect((IntPtr)0x00000001405030A0, 6, PAGE_EXECUTE_READWRITE, out oldProtect);
-                MemoryManipulator.WriteByte((0x00000001405030A0 + 0), 0x90);
-                MemoryManipulator.WriteByte((0x00000001405030A0 + 1), 0x90);
-                MemoryManipulator.WriteByte((0x00000001405030A0 + 2), 0x90);
-                MemoryManipulator.WriteByte((0x00000001405030A0 + 3), 0x90);
-                MemoryManipulator.WriteByte((0x00000001405030A0 + 4), 0x90);
-                MemoryManipulator.WriteByte((0x00000001405030A0 + 5), 0x90);
+                MemoryManipulator.WriteNop(0x00000001405030A0, 6);
                 VirtualProtect((IntPtr)0x00000001404ACD2B, 6, oldProtect, out bck);
             }
         }
