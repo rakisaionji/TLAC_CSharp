@@ -270,7 +270,7 @@ namespace DivaHook.Emulator
             int bytesWritten = 0;
             byte[] buffer = { value };
 
-            WriteProcessMemory((int)ProcessHandle, address, buffer, buffer.Length, ref bytesWritten);
+            Write(address, buffer);
         }
 
         public void WriteInt16(long address, short value)
@@ -281,7 +281,7 @@ namespace DivaHook.Emulator
             int bytesWritten = 0;
             byte[] buffer = BitConverter.GetBytes(value);
 
-            WriteProcessMemory((int)ProcessHandle, address, buffer, buffer.Length, ref bytesWritten);
+            Write(address, buffer);
         }
 
         public void WriteInt32(long address, int value)
@@ -292,7 +292,7 @@ namespace DivaHook.Emulator
             int bytesWritten = 0;
             byte[] buffer = BitConverter.GetBytes(value);
 
-            WriteProcessMemory((int)ProcessHandle, address, buffer, buffer.Length, ref bytesWritten);
+            Write(address, buffer);
         }
 
         public void WriteInt64(long address, long value)
@@ -303,7 +303,7 @@ namespace DivaHook.Emulator
             int bytesWritten = 0;
             byte[] buffer = BitConverter.GetBytes(value);
 
-            WriteProcessMemory((int)ProcessHandle, address, buffer, buffer.Length, ref bytesWritten);
+            Write(address, buffer);
         }
 
         public void WriteSingle(long address, float value)
@@ -314,7 +314,7 @@ namespace DivaHook.Emulator
             int bytesWritten = 0;
             byte[] buffer = BitConverter.GetBytes(value);
 
-            WriteProcessMemory((int)ProcessHandle, address, buffer, buffer.Length, ref bytesWritten);
+            Write(address, buffer);
         }
 
         public void WriteDouble(long address, double value)
@@ -325,7 +325,7 @@ namespace DivaHook.Emulator
             int bytesWritten = 0;
             byte[] buffer = BitConverter.GetBytes(value);
 
-            WriteProcessMemory((int)ProcessHandle, address, buffer, buffer.Length, ref bytesWritten);
+            Write(address, buffer);
         }
 
         public int GetAsciiStringLength(long address)
@@ -353,6 +353,14 @@ namespace DivaHook.Emulator
             GetWindowThreadProcessId(foregroundWindow, out int activeProcId);
 
             return Process.GetProcessById(activeProcId);
+        }
+        
+        public void WriteNop(long address, int length) 
+        {
+            if (!IsAttached || address <= 0)
+                return;
+            
+            Write(address, Assembly.GetNopInstructions(length));
         }
     }
 }

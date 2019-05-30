@@ -10,6 +10,7 @@ namespace DivaHook.Emulator.Components
         private const long CURRENT_GAME_STATE_ADDRESS = 0x0000000140EDA810L;
         private const long DATA_INIT_STATE_ADDRESS = 0x0000000140EDA7A8L;
         private const long SYSTEM_WARNING_ELAPSED_ADDRESS = 0x00000001411A1430L;
+        private const long SYSTEM_WARNING_ELAPSED_FRAME_ADDRESS = (SYSTEM_WARNING_ELAPSED_ADDRESS + 0x68L);
         // private const long AET_FRAME_DURATION_ADDRESS = 0x00000001409A0A58L;
 
         private GameState currentGameState;
@@ -54,7 +55,7 @@ namespace DivaHook.Emulator.Components
                 // DATA_INITIALIZED = 3;
 
                 // Skip the 600 frames of TaskWarning
-                MemoryManipulator.WriteInt32(GetSystemWarningElapsedAddress(), 3939);
+                MemoryManipulator.WriteInt32(SYSTEM_WARNING_ELAPSED_FRAME_ADDRESS, 3939);
             }
             else if (previousGameState == GameState.GS_STARTUP)
             {
@@ -62,9 +63,5 @@ namespace DivaHook.Emulator.Components
             }
         }
 
-        private long GetSystemWarningElapsedAddress()
-        {
-            return SYSTEM_WARNING_ELAPSED_ADDRESS + 0x68L;
-        }
     }
 }
