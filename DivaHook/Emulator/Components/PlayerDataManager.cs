@@ -6,7 +6,22 @@ namespace DivaHook.Emulator.Components
 {
     public class PlayerDataManager : IEmulatorComponent
     {
+        ////////////////////////////////////////////////////////////////////////////////
+        // ===== PATCH.TXT DESCRIPTIONS =====
+        // // Return early before resetting to the default PlayerData so we don't need to keep updating the PlayerData struct
+        // 0x00000001404A7370 : 0x5 : 48 89 5C 24 08 : C3 90 90 90 90 
+        // // Allow player to select the module and extra items (by vladkorotnev)
+        // 0x00000001405869AD : 0x2 : 32 C0 : B0 01 
+        // // Fix annoying behavior of closing after changing module or item (by vladkorotnev)
+        // 0x0000000140583B45 : 0x1 : 84 : 85 
+        // 0x0000000140583C8C : 0x1 : 84 : 85 
+        ////////////////////////////////////////////////////////////////////////////////
+
         private const long PLAYER_DATA_ADDRESS = 0x00000001411A8850L;
+        private const long MODULE_TABLE_START = 0x00000001411A8990L;
+        private const long MODULE_TABLE_END = 0x00000001411A8A0FL;
+        private const long ITEM_TABLE_START = 0x00000001411A8B08L;
+        private const long ITEM_TABLE_END = 0x00000001411A8B87L;
 
         private string DefaultName = "ＮＯ－ＮＡＭＥ";
         private byte[] PlayerNameValue;
@@ -86,10 +101,20 @@ namespace DivaHook.Emulator.Components
             if (Level < 1) Level = 1;
             if (ActVol < 0 || ActVol > 100) ActVol = 100;
             if (HpVol < 0 || HpVol > 100) HpVol = 100;
+            for (long i = MODULE_TABLE_START; i <= MODULE_TABLE_END; i++)
+            {
+                MemoryManipulator.WriteByte(i, 0xFF);
+            }
+            for (long i = ITEM_TABLE_START; i <= ITEM_TABLE_END; i++)
+            {
+                MemoryManipulator.WriteByte(i, 0xFF);
+            }
         }
 
         public void UpdateEmulatorTick(TimeSpan deltaTime)
         {
+            // use_card = 1 // Required to allow for module selection
+            MemoryManipulator.WriteInt32(PLAYER_DATA_ADDRESS, 1);
             var b = MemoryManipulator.Read(PlayerNameAddress, 21);
             var s = Encoding.UTF8.GetString(b).Trim();
             if (s.Equals(DefaultName) && !s.Equals(PlayerConfig.PlayerName))
