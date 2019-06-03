@@ -17,13 +17,18 @@ namespace DivaHook.Emulator.Components
         // 0x0000000140583C8C : 0x1 : 84 : 85 
         ////////////////////////////////////////////////////////////////////////////////
 
+        private const long SET_DEFAULT_PLAYER_DATA_ADDRESS = 0x00000001404A7370L;
+        private const long MODSELECTOR_CHECK_FUNCTION_ERRRET_ADDRESS = 0x00000001405869ADL;
+        private const long MODSELECTOR_CLOSE_AFTER_MODULE = 0x0000000140583B45L;
+        private const long MODSELECTOR_CLOSE_AFTER_CUSTOMIZE = 0x0000000140583C8CL;
+
         private const long PLAYER_DATA_ADDRESS = 0x00000001411A8850L;
         private const long MODULE_TABLE_START = 0x00000001411A8990L;
         private const long MODULE_TABLE_END = 0x00000001411A8A0FL;
         private const long ITEM_TABLE_START = 0x00000001411A8B08L;
         private const long ITEM_TABLE_END = 0x00000001411A8B87L;
 
-        private string DefaultName = "ＮＯ－ＮＡＭＥ";
+        private const string DefaultName = "ＮＯ－ＮＡＭＥ";
         private byte[] PlayerNameValue;
         private Int32 PlayerNameAddress;
         public Int32 Level = 1;
@@ -36,6 +41,7 @@ namespace DivaHook.Emulator.Components
         public Int32 ActSlideVol = 100;
         public Int32 HpVol = 100;
         public Int32 PasswordStatus = -1;
+        public Int32 PvSortKind = 2;
 
         private bool checkPlayerDataState = true;
 
@@ -64,8 +70,25 @@ namespace DivaHook.Emulator.Components
                 field1 = field2;
         }
 
+        private void InjectPatches()
+        {
+            // Prevent the PlayerData from being reset so we don't need to keep updating the PlayerData struct
+            MemoryManipulator.WritePatch(SET_DEFAULT_PLAYER_DATA_ADDRESS, new byte[] { 0xC3 }); // ret
+            // Allow player to select the module and extra item (by vladkorotnev)
+            MemoryManipulator.WritePatch(MODSELECTOR_CHECK_FUNCTION_ERRRET_ADDRESS, new byte[] { 0xB0, 0x01 }); // xor al,al -> ld al,1
+            // Fix annoying behavior of closing after changing module or item  (by vladkorotnev)
+            MemoryManipulator.WritePatch(MODSELECTOR_CLOSE_AFTER_MODULE, new byte[] { 0x85 }); // je --> jne
+            MemoryManipulator.WritePatch(MODSELECTOR_CLOSE_AFTER_CUSTOMIZE, new byte[] { 0x85 }); // je --> jne
+            // Display clear borders on the progress bar (by vladkorotnev)
+            MemoryManipulator.WriteByte(PLAYER_DATA_ADDRESS + 0xD94, 0x3);
+            // Enable module selection without card (by lybxlpsv) [ WIP / NG ]
+            // MemoryManipulator.WritePatch(0x00000001405C5133, new byte[] { 0x74 });
+            // MemoryManipulator.WritePatch(0x00000001405BC8E7, new byte[] { 0x74 });
+        }
+
         public void InitializeDivaMemory()
         {
+            InjectPatches();
             var AppConfig = Properties.Settings.Default;
             if (AppConfig.PlayerName.Equals(PlayerConfig.PlayerName))
             {
@@ -98,9 +121,11 @@ namespace DivaHook.Emulator.Components
             Int32.TryParse(PlayerConfig.ActSlideVol, out ActSlideVol);
             Int32.TryParse(PlayerConfig.HpVol, out HpVol);
             Int32.TryParse(PlayerConfig.PasswordStatus, out PasswordStatus);
+            Int32.TryParse(PlayerConfig.PvSortKind, out PvSortKind);
             if (Level < 1) Level = 1;
             if (ActVol < 0 || ActVol > 100) ActVol = 100;
             if (HpVol < 0 || HpVol > 100) HpVol = 100;
+            // Allow player to select the module and extra items (by vladkorotnev)
             for (long i = MODULE_TABLE_START; i <= MODULE_TABLE_END; i++)
             {
                 MemoryManipulator.WriteByte(i, 0xFF);
@@ -135,6 +160,7 @@ namespace DivaHook.Emulator.Components
                 MemoryManipulator.WriteInt32(GetPlayerActSlideVolAddress(), ActSlideVol);
                 MemoryManipulator.WriteInt32(GetPlayerHpVolAddress(), HpVol);
                 MemoryManipulator.WriteInt32(GetPlayerPasswordStatusAddress(), PasswordStatus);
+                MemoryManipulator.WriteInt32(GetPlayerPvSortKindAddress(), PvSortKind);
             }
             else
             {
@@ -236,6 +262,11 @@ namespace DivaHook.Emulator.Components
         private long GetPlayerActSlideVolAddress()
         {
             return PLAYER_DATA_ADDRESS + 0x13CL;
+        }
+
+        private long GetPlayerPvSortKindAddress()
+        {
+            return PLAYER_DATA_ADDRESS + 0x584L;
         }
 
         private long GetPlayerPasswordStatusAddress()

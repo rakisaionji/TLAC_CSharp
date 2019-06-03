@@ -36,13 +36,13 @@ namespace DivaHook.Emulator.Input
             return;
         }
 
-        public KeyboardState CurrentKeyboardState { get; private set; }
+        public KeyboardState CurrentKeyboardState;
 
-        public KeyboardState PreviousKeyboardState { get; private set; }
+        public KeyboardState PreviousKeyboardState;
 
-        public MouseState CurrentMouseState { get; private set; }
+        public MouseState CurrentMouseState;
 
-        public MouseState PreviousMouseState { get; private set; }
+        public MouseState PreviousMouseState;
 
         public static void UpdateInputState()
         {
@@ -54,6 +54,7 @@ namespace DivaHook.Emulator.Input
         {
             Instance.PreviousMouseState = Instance.CurrentMouseState;
             Instance.CurrentMouseState = Mouse.GetMouseState();
+            Instance.CurrentMouseState.RelativePosition = Instance.CurrentMouseState.Position;
         }
 
         private static void UpdateKeyboardState()
@@ -103,7 +104,7 @@ namespace DivaHook.Emulator.Input
             }
         }
 
-        public bool HasMouseMoved() => CurrentMouseState.Position != PreviousMouseState.Position;
+        public bool HasMouseMoved() => CurrentMouseState.Position.ToPoint() != PreviousMouseState.Position.ToPoint();
 
         public static Keys[] GetPressedKeys()
         {

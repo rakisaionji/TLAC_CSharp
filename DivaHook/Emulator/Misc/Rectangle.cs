@@ -25,9 +25,9 @@ namespace DivaHook.Emulator
         public Rectangle ToRectangle()
         {
             return new Rectangle(
-                x: Left, 
-                y: Top, 
-                width: Right - Left, 
+                x: Left,
+                y: Top,
+                width: Right - Left,
                 height: Bottom - Top);
         }
     }

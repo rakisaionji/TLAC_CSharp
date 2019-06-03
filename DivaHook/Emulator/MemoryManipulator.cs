@@ -1,14 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace DivaHook.Emulator
 {
     public partial class MemoryManipulator
     {
+        private const uint PAGE_EXECUTE_READWRITE = 0x40;
+
         private const long RESOLUTION_WIDTH_ADDRESS = 0x0000000140EDA8BC;
         private const long RESOLUTION_HEIGHT_ADDRESS = 0x0000000140EDA8C0;
+        // private const long FB_WIDTH_ADDRESS = 0x00000001411ABCA8;
+        // private const long FB_HEIGHT_ADDRESS = 0x00000001411ABCAC;
+
+
+        [DllImport(USER32_DLL)]
+        static extern bool ScreenToClient(IntPtr hWnd, out POINT lpPoint);
+
+        [DllImport(KERNEL32_DLL)]
+        public static extern bool VirtualProtect(IntPtr lpAddress, uint dwSize, uint flNewProtect, out uint lpflOldProtect);
 
         private const ProcessAccess PROCESS_ACCESS = ProcessAccess.PROCESS_VM_READ | ProcessAccess.PROCESS_VM_WRITE | ProcessAccess.PROCESS_VM_OPERATION;
 
@@ -45,27 +57,29 @@ namespace DivaHook.Emulator
             }
         }
 
-        public Vector2 GetMouseRelativePos(Vector2 pos)
+        public POINT GetMouseRelativePos(POINT pos)
         {
             if (!IsAttached)
             {
-                return Vector2.Zero;
+                return new POINT(0, 0);
             }
             else
             {
-                var v = new Vector2();
-                v.X = pos.X; v.Y = pos.Y;
-
                 float xoffset;
                 float scale;
+
+                ScreenToClient(AttachedProcess.MainWindowHandle, out pos);
                 RECT hWindow;
                 GetClientRect(AttachedProcess.MainWindowHandle, out hWindow);
 
                 var gameHeight = ReadInt32(RESOLUTION_HEIGHT_ADDRESS);
                 var gameWidth = ReadInt32(RESOLUTION_WIDTH_ADDRESS);
+                // var fbWidth = ReadInt32(FB_WIDTH_ADDRESS);
+                // var fbHeight = ReadInt32(FB_HEIGHT_ADDRESS);
 
+                // if ((fbWidth != gameWidth) && (fbHeight != gameHeight))
+                // {
                 xoffset = ((float)16 / (float)9) * (hWindow.Bottom - hWindow.Top);
-
                 if (xoffset != (hWindow.Right - hWindow.Left))
                 {
                     scale = xoffset / (hWindow.Right - hWindow.Left);
@@ -76,10 +90,11 @@ namespace DivaHook.Emulator
                     xoffset = 0;
                     scale = 1;
                 }
-                v.X = ((v.X - (float)Math.Round(xoffset)) * gameWidth / (hWindow.Right - hWindow.Left)) / scale;
-                v.Y = v.Y * gameHeight / (hWindow.Bottom - hWindow.Top);
+                pos.X = (int)(((pos.X - Math.Round(xoffset)) * gameWidth / (hWindow.Right - hWindow.Left)) / scale);
+                pos.Y = pos.Y * gameHeight / (hWindow.Bottom - hWindow.Top);
+                // }
 
-                return v;
+                return pos;
             }
         }
 
@@ -262,12 +277,25 @@ namespace DivaHook.Emulator
             WriteProcessMemory((int)ProcessHandle, address, value, value.Length, ref bytesWritten);
         }
 
+        public void WritePatch(long address, byte[] value)
+        {
+            if (!IsAttached || address <= 0)
+                return;
+
+            uint oldProtect, bck;
+            int bytesWritten = 0;
+
+            VirtualProtect((IntPtr)address, (uint)value.Length, PAGE_EXECUTE_READWRITE, out oldProtect);
+            WriteProcessMemory((int)ProcessHandle, address, value, value.Length, ref bytesWritten);
+            VirtualProtect((IntPtr)address, (uint)value.Length, oldProtect, out bck);
+        }
+
         public void WriteByte(long address, byte value)
         {
             if (!IsAttached || address <= 0)
                 return;
 
-            int bytesWritten = 0;
+            // int bytesWritten = 0;
             byte[] buffer = { value };
 
             Write(address, buffer);
@@ -278,7 +306,7 @@ namespace DivaHook.Emulator
             if (!IsAttached || address <= 0)
                 return;
 
-            int bytesWritten = 0;
+            // int bytesWritten = 0;
             byte[] buffer = BitConverter.GetBytes(value);
 
             Write(address, buffer);
@@ -289,7 +317,7 @@ namespace DivaHook.Emulator
             if (!IsAttached || address <= 0)
                 return;
 
-            int bytesWritten = 0;
+            // int bytesWritten = 0;
             byte[] buffer = BitConverter.GetBytes(value);
 
             Write(address, buffer);
@@ -300,7 +328,7 @@ namespace DivaHook.Emulator
             if (!IsAttached || address <= 0)
                 return;
 
-            int bytesWritten = 0;
+            // int bytesWritten = 0;
             byte[] buffer = BitConverter.GetBytes(value);
 
             Write(address, buffer);
@@ -311,7 +339,7 @@ namespace DivaHook.Emulator
             if (!IsAttached || address <= 0)
                 return;
 
-            int bytesWritten = 0;
+            // int bytesWritten = 0;
             byte[] buffer = BitConverter.GetBytes(value);
 
             Write(address, buffer);
@@ -322,7 +350,7 @@ namespace DivaHook.Emulator
             if (!IsAttached || address <= 0)
                 return;
 
-            int bytesWritten = 0;
+            // int bytesWritten = 0;
             byte[] buffer = BitConverter.GetBytes(value);
 
             Write(address, buffer);
@@ -354,13 +382,37 @@ namespace DivaHook.Emulator
 
             return Process.GetProcessById(activeProcId);
         }
-        
-        public void WriteNop(long address, int length) 
+
+        public void WriteNop(long address, int length)
         {
             if (!IsAttached || address <= 0)
                 return;
-            
+
             Write(address, Assembly.GetNopInstructions(length));
+        }
+
+        public void WritePatchNop(long address, int length)
+        {
+            if (!IsAttached || address <= 0)
+                return;
+
+            uint oldProtect, bck;
+
+            VirtualProtect((IntPtr)address, (uint)length, PAGE_EXECUTE_READWRITE, out oldProtect);
+            Write(address, Assembly.GetNopInstructions(length));
+            VirtualProtect((IntPtr)address, (uint)length, oldProtect, out bck);
+        }
+
+        public static bool VirtualProtect(IntPtr lpAddress, uint dwSize)
+        {
+            uint oldProtect;
+            return VirtualProtect((IntPtr)lpAddress, dwSize, PAGE_EXECUTE_READWRITE, out oldProtect);
+        }
+
+        public static bool VirtualProtect(IntPtr lpAddress, uint dwSize, uint flNewProtect)
+        {
+            uint oldProtect;
+            return VirtualProtect((IntPtr)lpAddress, dwSize, flNewProtect, out oldProtect);
         }
     }
 }

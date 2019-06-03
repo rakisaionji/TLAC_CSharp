@@ -41,8 +41,7 @@ namespace DivaHook.Emulator.Components
 
             if (InputHelper.Instance.HasMouseMoved())
             {
-                var bounds = MemoryManipulator.GetMainWindowBounds();
-                var mousePos = InputHelper.Instance.CurrentMouseState.Position - bounds.Position;
+                var mousePos = InputHelper.Instance.CurrentMouseState.RelativePosition;
                 var relPos = MemoryManipulator.GetMouseRelativePos(mousePos);
 
                 MemoryManipulator.WriteSingle(GetTouchPanelXPositionAddress(), relPos.X);

@@ -113,7 +113,7 @@ namespace DivaHook.Emulator.Camera
                 var bounds = MemoryManipulator.GetMainWindowBounds();
                 var center = bounds.Center;
 
-                Vector2 mouseMovement = InputHelper.Instance.CurrentMouseState.Position - center.ToVector2();
+                var mouseMovement = InputHelper.Instance.CurrentMouseState.Position.ToPoint() - center;
 
                 CameraVerticalRotation += mouseMovement.X * elapsedMs * .01f;
 
@@ -166,7 +166,7 @@ namespace DivaHook.Emulator.Camera
             Vector2 focus = cameraPosition + MathHelper.PointFromAngle(CameraVerticalRotation, 1f);
             CameraData.FocusX = focus.X;
             CameraData.FocusZ = focus.Y;
-            
+
             CameraData.FocusHeight = CameraData.Height + MathHelper.PointFromAngle(CameraHorizontalRotation, 1f).X;
 
             CameraData.Slant = CameraSlant;

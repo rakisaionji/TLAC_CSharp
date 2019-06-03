@@ -20,5 +20,8 @@
     <Setting Name="HpVol" Type="System.String" Scope="User">
       <Value Profile="(Default)">100</Value>
     </Setting>
+    <Setting Name="PvSortKind" Type="System.String" Scope="User">
+      <Value Profile="(Default)">2</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

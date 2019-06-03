@@ -63,7 +63,7 @@ namespace DivaHook.Emulator
                 new CoinEmulator(MemoryManipulator, KeyConfig),
                 new TouchSliderEmulator(MemoryManipulator, KeyConfig),
                 new TouchPanelEmulator(MemoryManipulator, KeyConfig),
-                new StageManager(MemoryManipulator, KeyConfig),
+                // new StageManager(MemoryManipulator, KeyConfig),
                 new PlayerDataManager(MemoryManipulator, PlayerConfig),
                 new DebugComponent(MemoryManipulator, KeyConfig),
                 new FastLoader(MemoryManipulator, KeyConfig),

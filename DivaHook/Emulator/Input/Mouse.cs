@@ -24,12 +24,10 @@ namespace DivaHook.Emulator.Input
             };
         }
 
-        public static Vector2 GetMousePosition()
+        public static POINT GetMousePosition()
         {
-            POINT mousePosition = new POINT();
-            GetCursorPos(out mousePosition);
-
-            return mousePosition.ToVector();
+            GetCursorPos(out POINT mousePosition);
+            return mousePosition;
         }
 
         public static void SetMousePosition(Point position)

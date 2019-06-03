@@ -19,6 +19,7 @@ namespace DivaHook.Emulator.Config
         public string ActSlideVol = "100";
         public string HpVol = "100";
         public string PasswordStatus = "-1";
+        public string PvSortKind = "1";
 
         private readonly Dictionary<string, StringBindingAccessor> accessorDictionary = null;
 
@@ -88,6 +89,9 @@ namespace DivaHook.Emulator.Config
                 },
                 {
                     "password_status", new StringBindingAccessor(() => PasswordStatus, (v) => PasswordStatus = v)
+                },
+                {
+                    "pv_sort_kind", new StringBindingAccessor(() => PvSortKind, (v) => PvSortKind = v)
                 },
             };
         }

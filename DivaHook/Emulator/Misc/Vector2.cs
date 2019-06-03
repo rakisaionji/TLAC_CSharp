@@ -621,7 +621,7 @@ namespace DivaHook.Emulator
         /// <param name="amount">Weighting value(between 0.0 and 1.0).</param>
         /// <param name="result">The result of linear interpolation of the specified vectors as an output parameter.</param>
         public static void LerpPrecise(ref Vector2 value1, ref Vector2 value2, float amount, out Vector2 result)
-        { 
+        {
             result.X = MathHelper.LerpPrecise(value1.X, value2.X, amount);
             result.Y = MathHelper.LerpPrecise(value1.Y, value2.Y, amount);
         }
@@ -878,7 +878,7 @@ namespace DivaHook.Emulator
         /// <returns>A <see cref="Point"/> representation for this object.</returns>
         public Point ToPoint()
         {
-            return new Point((int) X,(int) Y);
+            return new Point((int)X, (int)Y);
         }
 
         /// <summary>

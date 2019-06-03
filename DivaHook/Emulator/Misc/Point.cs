@@ -224,6 +224,16 @@ namespace DivaHook.Emulator
             return "{X:" + X + " Y:" + Y + "}";
         }
 
+        public Point ToPoint()
+        {
+            return new Point(X, Y);
+        }
+
+        public POINT ToPointC()
+        {
+            return new POINT(X, Y);
+        }
+
         /// <summary>
         /// Gets a <see cref="Vector2"/> representation for this object.
         /// </summary>

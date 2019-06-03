@@ -44,8 +44,7 @@ namespace DivaHook.Emulator.Components
 
             if (currentGameState == GameState.GS_STARTUP)
             {
-                var ptr = new IntPtr(UPDATE_TASKS_ADDRESS);
-                var updateTask = Marshal.GetDelegateForFunctionPointer<UpdateTask>(ptr);
+                var updateTask = Marshal.GetDelegateForFunctionPointer<UpdateTask>((IntPtr)UPDATE_TASKS_ADDRESS);
 
                 // Speed up TaskSystemStartup
                 for (int i = 0; i < updatesPerFrame; i++) updateTask();

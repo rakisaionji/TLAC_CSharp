@@ -5,7 +5,7 @@ namespace DivaHook.Emulator.Components
 {
     public class StageManager : IEmulatorComponent
     {
-        private const long PV_LEVEL_INFO_STRUCT_ADDRESS = 0x0000000141197E00L;
+        // private const long PV_LEVEL_INFO_STRUCT_ADDRESS = 0x0000000141197E00L;
 
         private const long PLAYS_PER_SESSION_GETTER_ADDRESS = 0x000000014038AEE0L;
 
@@ -58,7 +58,7 @@ namespace DivaHook.Emulator.Components
             // unknown object pointer argument passed in rcx to the StartGameOverMain function
             return 0x0000000141197AD0L + 0x8C;
         }
-
+        /*
         private long GetDifficultyAddress()
         {
             return PV_LEVEL_INFO_STRUCT_ADDRESS + 0x0L;
@@ -73,5 +73,6 @@ namespace DivaHook.Emulator.Components
         {
             return PV_LEVEL_INFO_STRUCT_ADDRESS + 0x8L;
         }
+        */
     }
 }
