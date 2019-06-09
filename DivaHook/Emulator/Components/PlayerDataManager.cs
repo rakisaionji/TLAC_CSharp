@@ -17,33 +17,55 @@ namespace DivaHook.Emulator.Components
         // 0x0000000140583C8C : 0x1 : 84 : 85 
         ////////////////////////////////////////////////////////////////////////////////
 
+        private const long PLAYER_DATA_ADDRESS = 0x00000001411A8850L;
+        private const long PLAYER_NAME_ADDRESS = PLAYER_DATA_ADDRESS + 0x0E0L;
+        private const long PLAYER_LEVEL_ADDRESS = PLAYER_DATA_ADDRESS + 0x120L;
+        private const long PLAYER_SKIN_EQUIP_ADDRESS = PLAYER_DATA_ADDRESS + 0x548L;
+        private const long PLAYER_PLATE_ID_ADDRESS = PLAYER_DATA_ADDRESS + 0x124L;
+        private const long PLAYER_PLATE_EFF_ADDRESS = PLAYER_DATA_ADDRESS + 0x128L;
+        private const long PLAYER_VP_ADDRESS = PLAYER_DATA_ADDRESS + 0x12CL;
+        private const long PLAYER_HP_VOL_ADDRESS = PLAYER_DATA_ADDRESS + 0x130L;
+        private const long PLAYER_ACT_TOGGLE_ADDRESS = PLAYER_DATA_ADDRESS + 0x134L;
+        private const long PLAYER_ACT_VOL_ADDRESS = PLAYER_DATA_ADDRESS + 0x138L;
+        private const long PLAYER_ACT_SLVOL_ADDRESS = PLAYER_DATA_ADDRESS + 0x13CL;
+        private const long PLAYER_PV_SORT_KIND_ADDRESS = PLAYER_DATA_ADDRESS + 0x584L;
+        private const long PLAYER_PWD_STAT_ADDRESS = PLAYER_DATA_ADDRESS + 0x668L;
+        private const long PLAYER_RANK_DISP_ADDRESS = PLAYER_DATA_ADDRESS + 0xE34L; // interim_ranking_disp_flag
+        private const long PLAYER_OPTION_DISP_ADDRESS = PLAYER_DATA_ADDRESS + 0xE35L; // rhythm_game_opt_disp_flag
+
+        private const long PLAYER_PLAY_ID_ADDRESS = PLAYER_DATA_ADDRESS + 0x0D0L; // play_data_id
+        private const long PLAYER_ACCEPT_ID_ADDRESS = PLAYER_DATA_ADDRESS + 0x0D4L; // accept_index
+        private const long PLAYER_START_ID_ADDRESS = PLAYER_DATA_ADDRESS + 0x0D8L; // start_index
+
         private const long SET_DEFAULT_PLAYER_DATA_ADDRESS = 0x00000001404A7370L;
         private const long MODSELECTOR_CHECK_FUNCTION_ERRRET_ADDRESS = 0x00000001405869ADL;
         private const long MODSELECTOR_CLOSE_AFTER_MODULE = 0x0000000140583B45L;
         private const long MODSELECTOR_CLOSE_AFTER_CUSTOMIZE = 0x0000000140583C8CL;
 
-        private const long PLAYER_DATA_ADDRESS = 0x00000001411A8850L;
         private const long MODULE_TABLE_START = 0x00000001411A8990L;
         private const long MODULE_TABLE_END = 0x00000001411A8A0FL;
         private const long ITEM_TABLE_START = 0x00000001411A8B08L;
         private const long ITEM_TABLE_END = 0x00000001411A8B87L;
 
+        private const long CURRENT_SUB_STATE = 0x0000000140EDA82CL;
+
         private const string DefaultName = "ＮＯ－ＮＡＭＥ";
         private byte[] PlayerNameValue;
         private Int32 PlayerNameAddress;
-        public Int32 Level = 1;
-        public Int32 PlateId = 0;
-        public Int32 PlateEff = -1;
-        public Int32 VocaloidPoint = 0;
-        public Int32 SkinEquip = 0;
-        public Byte ActToggle = 1;
-        public Int32 ActVol = 100;
-        public Int32 ActSlideVol = 100;
-        public Int32 HpVol = 100;
-        public Int32 PasswordStatus = -1;
-        public Int32 PvSortKind = 2;
+        private Int32 Level = 1;
+        private Int32 PlateId = 0;
+        private Int32 PlateEff = -1;
+        private Int32 VocaloidPoint = 0;
+        private Int32 SkinEquip = 0;
+        private Byte ActToggle = 1;
+        private Int32 ActVol = 100;
+        private Int32 ActSlideVol = 100;
+        private Int32 HpVol = 100;
+        private Int32 PasswordStatus = -1;
+        private Int32 PvSortKind = 2;
+        private Int32 PlayIndex = 1;
 
-        private bool checkPlayerDataState = true;
+        private int step = 0;
 
         public KeyConfig KeyConfig { get; private set; }
         public PlayerConfig PlayerConfig { get; private set; }
@@ -93,24 +115,52 @@ namespace DivaHook.Emulator.Components
             if (AppConfig.PlayerName.Equals(PlayerConfig.PlayerName))
             {
                 SetPlayerConfig(ref PlayerConfig.VocaloidPoint, AppConfig.VocaloidPoint);
-                // SetPlayerConfig(ref PlayerConfig.ActToggle, AppConfig.ActToggle);
-                // SetPlayerConfig(ref PlayerConfig.ActVol, AppConfig.ActVol);
-                // SetPlayerConfig(ref PlayerConfig.ActSlideVol, AppConfig.ActSlideVol);
-                // SetPlayerConfig(ref PlayerConfig.HpVol, AppConfig.HpVol);
+                SetPlayerConfig(ref PlayerConfig.ActToggle, AppConfig.ActToggle);
+                SetPlayerConfig(ref PlayerConfig.ActVol, AppConfig.ActVol);
+                SetPlayerConfig(ref PlayerConfig.ActSlideVol, AppConfig.ActSlideVol);
+                SetPlayerConfig(ref PlayerConfig.PvSortKind, AppConfig.PvSortKind);
+                SetPlayerConfig(ref PlayerConfig.PlayIndex, AppConfig.PlayIndex);
             }
             else
             {
                 AppConfig.PlayerName = PlayerConfig.PlayerName;
-                // AppConfig.VocaloidPoint = PlayerConfig.VocaloidPoint;
-                // AppConfig.ActToggle = PlayerConfig.ActToggle;
-                // AppConfig.ActVol = PlayerConfig.ActVol;
-                // AppConfig.ActSlideVol = PlayerConfig.ActSlideVol;
-                // AppConfig.HpVol = PlayerConfig.HpVol;
+                AppConfig.VocaloidPoint = PlayerConfig.VocaloidPoint;
+                AppConfig.ActToggle = PlayerConfig.ActToggle;
+                AppConfig.ActVol = PlayerConfig.ActVol;
+                AppConfig.ActSlideVol = PlayerConfig.ActSlideVol;
+                AppConfig.HpVol = PlayerConfig.HpVol;
+                AppConfig.PvSortKind = PlayerConfig.PvSortKind;
+                AppConfig.PlayIndex = PlayerConfig.PlayIndex;
             }
             PlayerNameValue = new byte[21];
             var b_name = Encoding.UTF8.GetBytes(PlayerConfig.PlayerName);
             Buffer.BlockCopy(b_name, 0, PlayerNameValue, 0, b_name.Length);
-            PlayerNameAddress = MemoryManipulator.ReadInt32(GetPlayerNameAddress());
+            PlayerNameAddress = MemoryManipulator.ReadInt32(PLAYER_NAME_ADDRESS);
+            ReadPlayerData();
+            if (Level < 1) Level = 1;
+            if (ActVol < 0 || ActVol > 100) ActVol = 100;
+            if (HpVol < 0 || HpVol > 100) HpVol = 100;
+            // use_card = 1 // Required to allow for module selection
+            MemoryManipulator.WriteInt32(PLAYER_DATA_ADDRESS, 1);
+            // Allow player to select the module and extra items (by vladkorotnev)
+            for (long i = MODULE_TABLE_START; i <= MODULE_TABLE_END; i++)
+            {
+                MemoryManipulator.WriteByte(i, 0xFF);
+            }
+            for (long i = ITEM_TABLE_START; i <= ITEM_TABLE_END; i++)
+            {
+                MemoryManipulator.WriteByte(i, 0xFF);
+            }
+            // Display interim rank and rhythm options (despite it is not yet fully functional)
+            MemoryManipulator.WriteByte(PLAYER_RANK_DISP_ADDRESS, 1);
+            MemoryManipulator.WriteByte(PLAYER_OPTION_DISP_ADDRESS, 1);
+            // First write of play start id, only once per starup
+            MemoryManipulator.WriteInt32(PLAYER_START_ID_ADDRESS, PlayIndex);
+            WritePlayerData();
+        }
+
+        private void ReadPlayerData()
+        {
             Int32.TryParse(PlayerConfig.Level, out Level);
             Int32.TryParse(PlayerConfig.SkinEquip, out SkinEquip);
             Int32.TryParse(PlayerConfig.PlateId, out PlateId);
@@ -122,156 +172,87 @@ namespace DivaHook.Emulator.Components
             Int32.TryParse(PlayerConfig.HpVol, out HpVol);
             Int32.TryParse(PlayerConfig.PasswordStatus, out PasswordStatus);
             Int32.TryParse(PlayerConfig.PvSortKind, out PvSortKind);
-            if (Level < 1) Level = 1;
-            if (ActVol < 0 || ActVol > 100) ActVol = 100;
-            if (HpVol < 0 || HpVol > 100) HpVol = 100;
-            // Allow player to select the module and extra items (by vladkorotnev)
-            for (long i = MODULE_TABLE_START; i <= MODULE_TABLE_END; i++)
-            {
-                MemoryManipulator.WriteByte(i, 0xFF);
-            }
-            for (long i = ITEM_TABLE_START; i <= ITEM_TABLE_END; i++)
-            {
-                MemoryManipulator.WriteByte(i, 0xFF);
-            }
+            Int32.TryParse(PlayerConfig.PlayIndex, out PlayIndex);
+        }
+
+        private void WritePlayerData()
+        {
+            var b = MemoryManipulator.Read(PlayerNameAddress, 21);
+            MemoryManipulator.Write(PlayerNameAddress, PlayerNameValue);
+            MemoryManipulator.WriteInt32(PLAYER_SKIN_EQUIP_ADDRESS, SkinEquip);
+            MemoryManipulator.WriteInt32(PLAYER_LEVEL_ADDRESS, Level);
+            MemoryManipulator.WriteInt32(PLAYER_PLATE_ID_ADDRESS, PlateId);
+            MemoryManipulator.WriteInt32(PLAYER_PLATE_EFF_ADDRESS, PlateEff);
+            MemoryManipulator.WriteInt32(PLAYER_VP_ADDRESS, VocaloidPoint);
+            MemoryManipulator.WriteByte(PLAYER_ACT_TOGGLE_ADDRESS, ActToggle);
+            MemoryManipulator.WriteInt32(PLAYER_ACT_VOL_ADDRESS, ActVol);
+            MemoryManipulator.WriteInt32(PLAYER_ACT_SLVOL_ADDRESS, ActSlideVol);
+            MemoryManipulator.WriteInt32(PLAYER_HP_VOL_ADDRESS, HpVol);
+            MemoryManipulator.WriteInt32(PLAYER_PWD_STAT_ADDRESS, PasswordStatus);
+            MemoryManipulator.WriteInt32(PLAYER_PV_SORT_KIND_ADDRESS, PvSortKind);
+            MemoryManipulator.WriteInt32(PLAYER_PLAY_ID_ADDRESS, PlayIndex);
+            MemoryManipulator.WriteInt32(PLAYER_ACCEPT_ID_ADDRESS, PlayIndex);
+        }
+
+        private void SavePlayerData()
+        {
+            // MemoryManipulator.WriteInt32(GetPlayerNameFAddress(), 0x10);
+            VocaloidPoint = MemoryManipulator.ReadInt32(PLAYER_VP_ADDRESS);
+            ActToggle = MemoryManipulator.ReadByte(PLAYER_ACT_TOGGLE_ADDRESS);
+            ActVol = MemoryManipulator.ReadInt32(PLAYER_ACT_VOL_ADDRESS); ;
+            ActSlideVol = MemoryManipulator.ReadInt32(PLAYER_ACT_SLVOL_ADDRESS);
+            HpVol = MemoryManipulator.ReadInt32(PLAYER_HP_VOL_ADDRESS);
+            PvSortKind = MemoryManipulator.ReadInt32(PLAYER_PV_SORT_KIND_ADDRESS);
+            PlayIndex = MemoryManipulator.ReadInt32(PLAYER_PLAY_ID_ADDRESS);
+            var sett = Properties.Settings.Default;
+            sett.VocaloidPoint = VocaloidPoint.ToString();
+            sett.ActToggle = ActToggle.ToString();
+            sett.ActVol = ActVol.ToString();
+            sett.ActSlideVol = ActSlideVol.ToString();
+            sett.HpVol = HpVol.ToString();
+            sett.PvSortKind = PvSortKind.ToString();
+            sett.PlayIndex = PlayIndex.ToString();
+            sett.Save();
+            // First write of play start id, only once per session
+            MemoryManipulator.WriteInt32(PLAYER_START_ID_ADDRESS, PlayIndex);
         }
 
         public void UpdateEmulatorTick(TimeSpan deltaTime)
         {
-            // use_card = 1 // Required to allow for module selection
-            MemoryManipulator.WriteInt32(PLAYER_DATA_ADDRESS, 1);
-            var b = MemoryManipulator.Read(PlayerNameAddress, 21);
-            var s = Encoding.UTF8.GetString(b).Trim();
-            if (s.Equals(DefaultName) && !s.Equals(PlayerConfig.PlayerName))
-                checkPlayerDataState = true;
-            else
-                checkPlayerDataState = false;
-            // MemoryManipulator.WriteInt32(GetPlayerNameFAddress(), 0x10);
-            MemoryManipulator.Write(PlayerNameAddress, PlayerNameValue);
-            MemoryManipulator.WriteInt32(GetPlayerSkinEquipAddress(), SkinEquip);
-            if (checkPlayerDataState)
+            var currentSubState = (SubGameState)MemoryManipulator.ReadInt32(CURRENT_SUB_STATE);
+            // 4       .. save all when flag = 3 / flag = 0
+            // 12 + 14 .. refresh->set flag = 1
+            // 13      .. if flag = 1 , increase game id; set flag = 2
+            // 15      .. set flag = 3
+            switch (currentSubState)
             {
-                MemoryManipulator.WriteInt32(GetPlayerLevelAddress(), Level);
-                MemoryManipulator.WriteInt32(GetPlayerPlateIdAddress(), PlateId);
-                MemoryManipulator.WriteInt32(GetPlayerPlateEffAddress(), PlateEff);
-                MemoryManipulator.WriteInt32(GetPlayerVpAddress(), VocaloidPoint);
-                MemoryManipulator.WriteByte(GetPlayerActToggleAddress(), ActToggle);
-                MemoryManipulator.WriteInt32(GetPlayerActVolAddress(), ActVol);
-                MemoryManipulator.WriteInt32(GetPlayerActSlideVolAddress(), ActSlideVol);
-                MemoryManipulator.WriteInt32(GetPlayerHpVolAddress(), HpVol);
-                MemoryManipulator.WriteInt32(GetPlayerPasswordStatusAddress(), PasswordStatus);
-                MemoryManipulator.WriteInt32(GetPlayerPvSortKindAddress(), PvSortKind);
+                case SubGameState.SUB_LOGO: // 4
+                    if (step == 2) PlayIndex--;
+                    if (step == 3) SavePlayerData();
+                    step = 0;
+                    break;
+                case SubGameState.SUB_SELECTOR: // 12
+                case SubGameState.SUB_GAME_SEL: // 14
+                    if (step == 2) PlayIndex--;
+                    if (step == 3) { SavePlayerData(); step = 0; }
+                    if (step == 0) WritePlayerData();
+                    step = 1;
+                    break;
+                case SubGameState.SUB_GAME_MAIN: // 13
+                    if (step == 1)
+                    {
+                        PlayIndex++;
+                        MemoryManipulator.WriteInt32(PLAYER_PLAY_ID_ADDRESS, PlayIndex);
+                        MemoryManipulator.WriteInt32(PLAYER_ACCEPT_ID_ADDRESS, PlayIndex);
+                    }
+                    step = 2;
+                    break;
+                case SubGameState.SUB_STAGE_RESULT: // 15
+                    step = 3;
+                    break;
+                default:
+                    break;
             }
-            else
-            {
-                /*
-                var save = false;
-                var sett = Properties.Settings.Default;
-                var vp = MemoryManipulator.ReadInt32(GetPlayerVpAddress());
-                if (!vp.Equals(VocaloidPoint))
-                {
-                    VocaloidPoint = vp;
-                    sett.VocaloidPoint = vp.ToString();
-                    save = true;
-                }
-                var tg = MemoryManipulator.ReadByte(GetPlayerActToggleAddress());
-                if (!vp.Equals(ActToggle))
-                {
-                    ActToggle = tg;
-                    sett.ActToggle = tg.ToString();
-                    save = true;
-                }
-                var av = MemoryManipulator.ReadInt32(GetPlayerActVolAddress());
-                if (!vp.Equals(ActVol))
-                {
-                    ActVol = av;
-                    sett.ActVol = av.ToString();
-                    save = true;
-                }
-                var sv = MemoryManipulator.ReadInt32(GetPlayerActSlideVolAddress());
-                if (!vp.Equals(ActSlideVol))
-                {
-                    ActSlideVol = sv;
-                    sett.ActSlideVol = sv.ToString();
-                    save = true;
-                }
-                var hp = MemoryManipulator.ReadInt32(GetPlayerHpVolAddress());
-                if (!vp.Equals(HpVol))
-                {
-                    HpVol = hp;
-                    sett.HpVol = hp.ToString();
-                    save = true;
-                }
-                if (save) sett.Save();
-                */
-                var vp = MemoryManipulator.ReadInt32(GetPlayerVpAddress());
-                if (!vp.Equals(VocaloidPoint))
-                {
-                    VocaloidPoint = vp;
-                    Properties.Settings.Default.VocaloidPoint = vp.ToString();
-                    Properties.Settings.Default.Save();
-                }
-            }
-        }
-
-        private long GetPlayerNameAddress()
-        {
-            return PLAYER_DATA_ADDRESS + 0x0E0L;
-        }
-
-        private long GetPlayerLevelAddress()
-        {
-            return PLAYER_DATA_ADDRESS + 0x120L;
-        }
-
-        private long GetPlayerSkinEquipAddress()
-        {
-            return PLAYER_DATA_ADDRESS + 0x548L;
-        }
-
-        private long GetPlayerPlateIdAddress()
-        {
-            return PLAYER_DATA_ADDRESS + 0x124L;
-        }
-
-        private long GetPlayerPlateEffAddress()
-        {
-            return PLAYER_DATA_ADDRESS + 0x128L;
-        }
-
-        private long GetPlayerVpAddress()
-        {
-            return PLAYER_DATA_ADDRESS + 0x12CL;
-        }
-
-        private long GetPlayerHpVolAddress()
-        {
-            return PLAYER_DATA_ADDRESS + 0x130L;
-        }
-
-        private long GetPlayerActToggleAddress()
-        {
-            return PLAYER_DATA_ADDRESS + 0x134L;
-        }
-
-        private long GetPlayerActVolAddress()
-        {
-            return PLAYER_DATA_ADDRESS + 0x138L;
-        }
-
-        private long GetPlayerActSlideVolAddress()
-        {
-            return PLAYER_DATA_ADDRESS + 0x13CL;
-        }
-
-        private long GetPlayerPvSortKindAddress()
-        {
-            return PLAYER_DATA_ADDRESS + 0x584L;
-        }
-
-        private long GetPlayerPasswordStatusAddress()
-        {
-            return PLAYER_DATA_ADDRESS + 0x668L;
         }
     }
 }

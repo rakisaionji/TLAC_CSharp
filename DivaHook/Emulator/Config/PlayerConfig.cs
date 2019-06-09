@@ -19,7 +19,8 @@ namespace DivaHook.Emulator.Config
         public string ActSlideVol = "100";
         public string HpVol = "100";
         public string PasswordStatus = "-1";
-        public string PvSortKind = "1";
+        public string PvSortKind = "2";
+        public string PlayIndex = "1";
 
         private readonly Dictionary<string, StringBindingAccessor> accessorDictionary = null;
 
@@ -92,6 +93,9 @@ namespace DivaHook.Emulator.Config
                 },
                 {
                     "pv_sort_kind", new StringBindingAccessor(() => PvSortKind, (v) => PvSortKind = v)
+                },
+                {
+                    "play_data_id", new StringBindingAccessor(() => PlayIndex, (v) => PlayIndex = v)
                 },
             };
         }
